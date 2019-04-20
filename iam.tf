@@ -164,7 +164,6 @@ resource "aws_iam_account_password_policy" "strict" {
   require_uppercase_characters    = true
   require_symbols                 = true
   allow_users_to_change_password  = true
-  password_reuse_prevention       = true
   max_password_age                = 0
   provider                        = "aws.identity"
 }
@@ -173,7 +172,7 @@ resource "aws_iam_policy" "mfa_policy" {
   name        = "EnforceMFA"
   path        = "/"
   description = "Policy which enforces MFA while allowing users to manage MFA devices"
-  policy      = "${data.aws_iam_policy_document.mfa.json}"
+  policy      = data.aws_iam_policy_document.mfa.json
   provider  = "aws.identity"
 }
 
@@ -184,32 +183,32 @@ resource "aws_iam_group" "admin" {
 
 resource "aws_iam_group_policy" "admin_assume_role" {
   name      = "admin-assume-role"
-  group     = "${aws_iam_group.admin.id}"
-  policy    = "${data.aws_iam_policy_document.assume_admin.json}"
+  group     = aws_iam_group.admin.id
+  policy    = data.aws_iam_policy_document.assume_admin.json
   provider  = "aws.identity"
 }
 
 resource "aws_iam_group_policy" "manage_users" {
   name      = "admin-can-manager-users"
-  group     = "${aws_iam_group.admin.id}"
-  policy    = "${data.aws_iam_policy_document.manage_users.json}"
+  group     = aws_iam_group.admin.id
+  policy    = data.aws_iam_policy_document.manage_users.json
   provider  = "aws.identity"
 }
 
 resource "aws_iam_group_policy_attachment" "enforce_mfa" {
-  group       = "${aws_iam_group.admin.id}"
-  policy_arn  = "${aws_iam_policy.mfa_policy.arn}"
+  group       = aws_iam_group.admin.id
+  policy_arn  = aws_iam_policy.mfa_policy.arn
   provider  = "aws.identity"
 }
 
 resource "aws_iam_group_policy_attachment" "admin_billing" {
-  group       = "${aws_iam_group.admin.id}"
-  policy_arn  = "${var.billing_default_arn}"
+  group       = aws_iam_group.admin.id
+  policy_arn  = var.billing_default_arn
   provider    = "aws.identity"
 }
 
 resource "aws_iam_group_policy_attachment" "admin_read_only" {
-  group       = "${aws_iam_group.admin.id}"
-  policy_arn  = "${var.read_only_default_arn}"
+  group       = aws_iam_group.admin.id
+  policy_arn  = var.read_only_default_arn
   provider    = "aws.identity"
 }

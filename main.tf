@@ -1,25 +1,25 @@
 provider "aws" {
-  region                      = "${var.aws_default_region}"
-  version                     = "2.5.0"
-  profile                     = "${var.profile}"
+  region                      = var.aws_default_region
+  version                     = "2.7.0"
+  profile                     = var.profile
   skip_credentials_validation = true
 }
 
 provider "aws" {
   alias               = "master"
-  region              = "${var.aws_default_region}"
-  allowed_account_ids = ["${var.master_account_id}"]
-  profile             = "${var.profile}"
+  region              = var.aws_default_region
+  allowed_account_ids = [var.master_account_id]
+  profile             = var.profile
 }
 
 provider "aws" {
   alias   = "identity"
-  region  = "${var.aws_default_region}"
-  profile = "${var.profile}"
+  region  = var.aws_default_region
+  profile = var.profile
 
   allowed_account_ids = [
-    "${var.master_account_id}",
-    "${aws_organizations_account.identity.id}"
+    var.master_account_id,
+    aws_organizations_account.identity.id
   ]
 
   assume_role {
@@ -30,12 +30,12 @@ provider "aws" {
 
 provider "aws" {
   alias   = "operations"
-  region  = "${var.aws_default_region}"
-  profile = "${var.profile}"
+  region  = var.aws_default_region
+  profile = var.profile
 
   allowed_account_ids = [
-    "${var.master_account_id}",
-    "${aws_organizations_account.operations.id}"
+    var.master_account_id,
+    aws_organizations_account.operations.id
   ]
 
   assume_role {
@@ -46,12 +46,12 @@ provider "aws" {
 
 provider "aws" {
   alias   = "development"
-  region  = "${var.aws_default_region}"
-  profile = "${var.profile}"
+  region  = var.aws_default_region
+  profile = var.profile
 
   allowed_account_ids = [
-    "${var.master_account_id}",
-    "${aws_organizations_account.development.id}"
+    var.master_account_id,
+    aws_organizations_account.development.id
   ]
 
   assume_role {
@@ -62,12 +62,12 @@ provider "aws" {
 
 provider "aws" {
   alias   = "production"
-  region  = "${var.aws_default_region}"
-  profile = "${var.profile}"
+  region  = var.aws_default_region
+  profile = var.profile
 
   allowed_account_ids = [
-    "${var.master_account_id}",
-    "${aws_organizations_account.production.id}"
+    var.master_account_id,
+    aws_organizations_account.production.id
   ]
 
   assume_role {
@@ -92,10 +92,10 @@ locals {
 
 module "terraform" {
   source      = "./modules/terraform-state"
-  aws_region  = "${var.aws_default_region}"
-  account_id  = "${aws_organizations_account.operations.id}"
-  domain_name = "${var.domain_name}"
-  tags        = "${merge(local.common_tags, var.tags)}"
+  aws_region  = var.aws_default_region
+  account_id  = aws_organizations_account.operations.id
+  domain_name = var.domain_name
+  tags        = merge(local.common_tags, var.tags)
 
   providers = {
     aws = "aws.operations"
@@ -161,7 +161,7 @@ resource "aws_iam_account_alias" "production" {
 
 module "iam-assume-roles-operations" {
   source            = "./modules/iam-assume-roles"
-  master_account_id = "${var.master_account_id}"
+  master_account_id = var.master_account_id
 
   providers = {
     aws = "aws.operations"
@@ -170,7 +170,7 @@ module "iam-assume-roles-operations" {
 
 module "iam-assume-roles-development" {
   source            = "./modules/iam-assume-roles"
-  master_account_id = "${var.master_account_id}"
+  master_account_id = var.master_account_id
 
   providers = {
     aws = "aws.development"
@@ -179,7 +179,7 @@ module "iam-assume-roles-development" {
 
 module "iam-assume-roles-production" {
   source            = "./modules/iam-assume-roles"
-  master_account_id = "${var.master_account_id}"
+  master_account_id = var.master_account_id
 
   providers = {
     aws = "aws.production"

@@ -28,7 +28,7 @@ data "aws_iam_policy_document" "default_kms_policy" {
       variable = "kms:CallerAccount"
 
       values = [
-        "${aws_organizations_account.operations.id}"
+        aws_organizations_account.operations.id
       ]
     }
   }
@@ -147,13 +147,13 @@ data "aws_iam_policy_document" "default_kms_policy" {
 
 resource "aws_kms_key" "default" {
   description = "The default KMS Key used for all services"
-  policy      = "${data.aws_iam_policy_document.default_kms_policy.json}"
-  tags        = "${merge(local.common_tags, var.tags)}"
+  policy      = data.aws_iam_policy_document.default_kms_policy.json
+  tags        = merge(local.common_tags, var.tags)
   provider    = "aws.operations"
 }
 
 resource "aws_kms_alias" "default" {
   name          = "alias/default-key"
-  target_key_id = "${aws_kms_key.default.key_id}"
+  target_key_id = aws_kms_key.default.key_id
   provider      = "aws.operations"
 }

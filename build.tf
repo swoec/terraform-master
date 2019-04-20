@@ -8,7 +8,7 @@ data "aws_iam_policy_document" "dev_prod_read_access" {
     ]
 
     resources = [
-      "${aws_s3_bucket.artifact_bucket.arn}"
+      aws_s3_bucket.artifact_bucket.arn
     ]
 
     principals {
@@ -60,13 +60,13 @@ data "aws_iam_policy_document" "allow_kms_key" {
     ]
 
     resources = [
-      "${aws_kms_key.default.arn}"
+      aws_kms_key.default.arn
     ]
   }
 }
 
 data "aws_iam_policy_document" "read_artifact_bucket" {
-  source_json = "${data.aws_iam_policy_document.allow_kms_key.json}"
+  source_json = data.aws_iam_policy_document.allow_kms_key.json
   statement {
     sid    = "AllowListBucket"
     effect = "Allow"
@@ -76,7 +76,7 @@ data "aws_iam_policy_document" "read_artifact_bucket" {
     ]
 
     resources = [
-      "${aws_s3_bucket.artifact_bucket.arn}"
+      aws_s3_bucket.artifact_bucket.arn
     ]
   }
 
@@ -96,7 +96,7 @@ data "aws_iam_policy_document" "read_artifact_bucket" {
 }
 
 data "aws_iam_policy_document" "rw_artifact_bucket" {
-  source_json = "${data.aws_iam_policy_document.read_artifact_bucket.json}"
+  source_json = data.aws_iam_policy_document.read_artifact_bucket.json
   statement {
     sid    = "AllowWriteBucket"
     effect = "Allow"
@@ -117,7 +117,7 @@ data "aws_iam_policy_document" "rw_artifact_bucket" {
 resource "aws_s3_bucket" "artifact_bucket" {
   bucket = "artifact.${var.domain_name}"
   acl    = "private"
-  tags   = "${merge(local.common_tags, var.tags)}"
+  tags   = merge(local.common_tags, var.tags)
 
   versioning {
     enabled = true
@@ -139,7 +139,7 @@ resource "aws_s3_bucket" "artifact_bucket" {
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
-        kms_master_key_id = "${aws_kms_key.default.arn}"
+        kms_master_key_id = aws_kms_key.default.arn
         sse_algorithm     = "aws:kms"
       }
     }
@@ -148,25 +148,25 @@ resource "aws_s3_bucket" "artifact_bucket" {
 }
 
 resource "aws_s3_bucket_policy" "dev_prod_read_access" {
-  bucket   = "${aws_s3_bucket.artifact_bucket.id}"
-  policy   = "${data.aws_iam_policy_document.dev_prod_read_access.json}"
+  bucket   = aws_s3_bucket.artifact_bucket.id
+  policy   = data.aws_iam_policy_document.dev_prod_read_access.json
   provider = "aws.operations"
 }
 
 resource "aws_iam_user" "travis_ci" {
   name     = "TravisCI"
-  tags     = "${merge(local.common_tags, var.tags)}"
+  tags     = merge(local.common_tags, var.tags)
   provider = "aws.operations"
 }
 
 resource "aws_iam_user_policy" "travis_ci_rw_policy" {
   name     = "allow_rw_artifact_bucket"
-  user     = "${aws_iam_user.travis_ci.name}"
-  policy   = "${data.aws_iam_policy_document.rw_artifact_bucket.json}"
+  user     = aws_iam_user.travis_ci.name
+  policy   = data.aws_iam_policy_document.rw_artifact_bucket.json
   provider = "aws.operations"
 }
 
 resource "aws_iam_access_key" "travis_ci" {
-  user     = "${aws_iam_user.travis_ci.name}"
+  user     = aws_iam_user.travis_ci.name
   provider = "aws.operations"
 }
